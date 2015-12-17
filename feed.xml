@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Blog Name</title>
+  <subtitle>Blog subtitle</subtitle>
+  <id>http://blog.url.com/</id>
+  <link href="http://blog.url.com/"/>
+  <link href="http://blog.url.com/feed.xml" rel="self"/>
+  <updated>2015-12-13T22:00:00+01:00</updated>
+  <author>
+    <name>Blog Author</name>
+  </author>
+  <entry>
+    <title>Validating Stateful Objects In Rails</title>
+    <link rel="alternate" href="http://blog.url.com/2015/12/13/validating-stateful-objects-in-rails.html"/>
+    <id>http://blog.url.com/2015/12/13/validating-stateful-objects-in-rails.html</id>
+    <published>2015-12-13T22:00:00+01:00</published>
+    <updated>2015-12-16T21:42:05+01:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;Let&amp;rsquo;s talk about state. Or actually, let&amp;rsquo;s not talk about state. I think we have talked enough about state. Let me just say that it&amp;rsquo;s very easy to think use state as a solution in OO programming. Especially when Rails give you tools such as &lt;code&gt;enum&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;There is a trap though. Things can become very messy, very quick. I have seen this in code bases I inherited as well as ones I helped create. While working at a project with a colleague we ran into state and wanted to curtail the increasing amount of code it started to bleed.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;A short example to explain what kind of state I am talking about:&lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Order&lt;/span&gt;
+  &lt;span class="n"&gt;enum&lt;/span&gt; &lt;span class="ss"&gt;status: &lt;/span&gt;&lt;span class="sx"&gt;%i(open paid delivered cancelled)&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The initial thought was to have conditional validations, but as we worked on the project and reviewed eachothers code we knew this was not the way.&lt;/p&gt;
+
+&lt;h2&gt;Control Your Controllers&lt;/h2&gt;
+
+&lt;p&gt;Instead we decided to return to a very RESTful way of doing things. Instead of having just one controller we implemented several controllers &lt;code&gt;OpenOrdersController&lt;/code&gt;, &lt;code&gt;PaidOrdersController&lt;/code&gt;, etc.&lt;/p&gt;
+
+&lt;p&gt;This was already a relief and helped us keep the controllers simple. But then the controller action, namely &lt;code&gt;create&lt;/code&gt; started to expand. Both annoyed and grateful to &lt;a href="https://github.com/bbatsov/rubocop"&gt;Rubocop&lt;/a&gt;, we had to look for different solutions.&lt;/p&gt;
+
+&lt;p&gt;We came up with a &lt;code&gt;Finalizer&lt;/code&gt; pattern. &lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;PaidOrdersController&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="no"&gt;ApplicationController&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;create&lt;/span&gt;
+    &lt;span class="k"&gt;begin&lt;/span&gt;
+      &lt;span class="vi"&gt;@order&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;assign_attributes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;order_params&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+      &lt;span class="no"&gt;FinalizeOrderPayment&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="vi"&gt;@order&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nf"&gt;call&lt;/span&gt;
+    &lt;span class="k"&gt;rescue&lt;/span&gt; &lt;span class="no"&gt;ActiveRecord&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="no"&gt;RecordInvalid&lt;/span&gt;
+      &lt;span class="n"&gt;render&lt;/span&gt; &lt;span class="s1"&gt;'something'&lt;/span&gt;
+    &lt;span class="k"&gt;end&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There was a bit more going on, but you get the point. We delegate all the logic very specific to paying an order to a new item, a finalizer as we started to call it.&lt;/p&gt;
+
+&lt;h2&gt;Finally&lt;/h2&gt;
+
+&lt;p&gt;The &lt;code&gt;Finalizer&lt;/code&gt; in turn looks somewhat like this:&lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;FinalizeOrderPayment&lt;/span&gt;
+  &lt;span class="kp"&gt;attr_reader&lt;/span&gt; &lt;span class="ss"&gt;:order&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;initialize&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;order&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="vi"&gt;@order&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;order&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;call&lt;/span&gt;
+    &lt;span class="k"&gt;unless&lt;/span&gt; &lt;span class="no"&gt;OrderPaymentValidator&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;order&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nf"&gt;valid?&lt;/span&gt;
+      &lt;span class="nb"&gt;fail&lt;/span&gt; &lt;span class="no"&gt;ActiveRecord&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="no"&gt;RecordInvalid&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;order&lt;/span&gt;
+    &lt;span class="k"&gt;end&lt;/span&gt;
+    &lt;span class="n"&gt;order&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;paid_on&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;Date&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;current&lt;/span&gt;
+    &lt;span class="n"&gt;order&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;send_to_shipping&lt;/span&gt;
+    &lt;span class="n"&gt;order&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;save&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Again, the first iteration had the validations right in there, but it became clear fast that it was doing too much. So we created the custom validator. It is a very simple object:&lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;OrderPaymentValidator&lt;/span&gt;
+  &lt;span class="kp"&gt;include&lt;/span&gt; &lt;span class="no"&gt;ActiveModel&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="no"&gt;Validations&lt;/span&gt;
+
+  &lt;span class="n"&gt;delegate&lt;/span&gt; &lt;span class="ss"&gt;:buyer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;:payment_confirmation&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;:product&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;:errors&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;to: :assessment&lt;/span&gt;
+
+  &lt;span class="n"&gt;validates&lt;/span&gt; &lt;span class="ss"&gt;:buyer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;:payment_confirmation&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;:product&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;presence: &lt;/span&gt;&lt;span class="kp"&gt;true&lt;/span&gt;
+  &lt;span class="n"&gt;validates&lt;/span&gt; &lt;span class="ss"&gt;:address&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;presence: &lt;/span&gt;&lt;span class="kp"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;if: :ship_order?&lt;/span&gt;
+
+  &lt;span class="kp"&gt;attr_reader&lt;/span&gt; &lt;span class="ss"&gt;:order&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;initialize&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;order&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="vi"&gt;@order&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;order&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+
+  &lt;span class="kp"&gt;private&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;ship_order?&lt;/span&gt;
+    &lt;span class="c1"&gt;# Something very specific&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is it really. We did this for each type of &lt;code&gt;Order&lt;/code&gt; we could have. It kept things very clear. Instead of filling the &lt;code&gt;Order&lt;/code&gt; class with lots of different validations we make a clean cut selection of what we want to validate and when without having to resort to conditional callbacks.&lt;/p&gt;
+
+&lt;p&gt;I came to see the &lt;code&gt;Finalizer&lt;/code&gt; and the &lt;code&gt;Validator&lt;/code&gt; objects as guards for changing state. Of course I wrote plenty of specs to make sure this code was solid.&lt;/p&gt;
+
+&lt;p&gt;On a project with legacy code I inherited I found a great mess whent it came to state and conditional validations as well. The conditions were simpler, so I didn&amp;rsquo;t make a &lt;code&gt;Finalizer&lt;/code&gt; object, only a custom &lt;code&gt;Validator&lt;/code&gt; which I call directly in the controller.&lt;/p&gt;
+
+&lt;p&gt;Something like the following. Note that I chose a different naming style here. It was another project and I am only using this as an example. I try to be consistent within a project though, just wanted to show another take&lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;CancelledOrderController&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="no"&gt;ApplicationController&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;create&lt;/span&gt;
+    &lt;span class="vi"&gt;@order&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;assign_attributes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;order_params&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="no"&gt;CancelledOrderValidator&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="vi"&gt;@order&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nf"&gt;valid?&lt;/span&gt;
+      &lt;span class="vi"&gt;@order&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;cancel&lt;/span&gt;
+      &lt;span class="n"&gt;flash&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="ss"&gt;:notice&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'Order cancelled'&lt;/span&gt;
+      &lt;span class="n"&gt;redirect_to&lt;/span&gt; &lt;span class="n"&gt;orders_path&lt;/span&gt;
+    &lt;span class="k"&gt;else&lt;/span&gt;
+      &lt;span class="n"&gt;render&lt;/span&gt; &lt;span class="ss"&gt;:new&lt;/span&gt;
+    &lt;span class="k"&gt;end&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is a more simple approach when you don&amp;rsquo;t need to do do much else to transition an &lt;code&gt;Order&lt;/code&gt; to another state, but it still allows you to treat each &lt;code&gt;Order&lt;/code&gt; state as its own resource. I found it very helpful in cleaning things up.&lt;/p&gt;
+
+&lt;p&gt;Truth be told, in future projects I will probably avoid status altogether and go straight into creating different models for each state which may or may not point to the same database table. We&amp;rsquo;ll see.&lt;/p&gt;
+
+&lt;p&gt;Only after we implemented it we were informed on changesets within the Phoenix framework for Elixir. My colleague &lt;a href="https://medium.com/@tomkr/three-things-i-m-liking-about-phoenix-a7688f03b6ef#.5o9gwg5qa"&gt;Tom Kruijsen wrote about it in his own blogpost&lt;/a&gt;. This seems a very similar approach, but isn&amp;rsquo;t available as such in Rails.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Postgres with Rails on Linux Mint</title>
+    <link rel="alternate" href="http://blog.url.com/2015/03/24/postgres-for-rails-in-linux.html"/>
+    <id>http://blog.url.com/2015/03/24/postgres-for-rails-in-linux.html</id>
+    <published>2015-03-24T01:00:00+01:00</published>
+    <updated>2015-12-15T10:34:58+01:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;This will be very short to let you know how to set up PostgreSQL so you won't have to use a password. Obviously this isn't the most secure, but this is assuming you don't have sensitive data in your development and test environment. (Which you shouldn't have.)&lt;/p&gt;
+
+&lt;p&gt;There is an excellent guide on how to set up Postgres on Ubuntu. I use Linux Mint, but 95% of the time an Unbuntu how-to will work on Linux Mint every time. If you haven't done that yet, go do that first:&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://help.ubuntu.com/community/PostgreSQL"&gt;Install PostgreSQL on Unbuntu&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;Minimal configuration&lt;/h3&gt;
+&lt;p&gt;So what I want for my Rails projects is a postgresql setup which will create the databases I need and be compatible with people I work on projects with who probably use a Mac.&lt;/p&gt;
+&lt;p&gt;This is what my database.yml file would look like:&lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&amp;#x000A;&lt;span class="ss"&gt;default: &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;default&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;adapter: &lt;/span&gt;&lt;span class="n"&gt;postgresql&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;encoding: &lt;/span&gt;&lt;span class="n"&gt;unicode&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;pool: &lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&amp;#x000A;&amp;#x000A;&lt;span class="ss"&gt;development:&amp;#x000A;  &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;default&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;database: &lt;/span&gt;&lt;span class="n"&gt;project_name_development&lt;/span&gt;&amp;#x000A;&amp;#x000A;&lt;span class="ss"&gt;test:&amp;#x000A;  &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;default&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;database: &lt;/span&gt;&lt;span class="n"&gt;project_name_test&lt;/span&gt;&amp;#x000A;&amp;#x000A;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now with Postgres installed and the configuration set up there was one thing that kept bugging me and it took me some Google searches, visits to StackOverflow and some trial and error before I got it right. So here it is:&lt;/p&gt;
+&lt;h3&gt;The point of this post&lt;/h3&gt;
+&lt;p&gt;This is where you should go: &lt;span class='inline-code'&gt;/etc/postgresql/9.3/main/pg_hba.conf&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Then I simply added this line:&lt;/p&gt;
+&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# TYPE  DATABASE     USER          ADDRESS            METHOD&amp;#x000A;host    all          richard       127.0.0.1/32       trust&amp;#x000A;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This means that for user 'richard' I set a blank password and now allow all connections which I run from Rails. That's it really. Nice and easy.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Web Development, my vocation</title>
+    <link rel="alternate" href="http://blog.url.com/2015/03/12/web-development-my-vocation.html"/>
+    <id>http://blog.url.com/2015/03/12/web-development-my-vocation.html</id>
+    <published>2015-03-12T01:00:00+01:00</published>
+    <updated>2015-12-13T23:53:57+01:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;I thought about first post on my new blog site. It should be about the technology I used to build it and that will come, but first I wanted to share my motivation as to why I wanted to maintain a blog site in the first place.&lt;/p&gt;
+&lt;p&gt;This blog is an expression of who I am. I am a web developer. This is only a small part of who I am, but strangely enough, it is what I feel very much at home with right now.&lt;/p&gt;
+&lt;h2&gt;Vocation&lt;/h2&gt;
+&lt;p&gt;Vocation is a powerful word to me. It is something which resonates strongly with my core values, my interests. It is not a job, not a career. A vocation is more powerful than that. More &lt;i&gt;real&lt;/i&gt;. An extension of who I am, going out in the world and contributing what I have to give.&lt;/p&gt;
+&lt;p&gt;That sounds pretty deep and honestly, I always thought of my vocation being more romantic than web development somehow. Like building a school in Vietnam or Cambodia. Not too long ago, when I still didn't know what I wanted to do when I'd grow up, I actually did things similar to that. While I found it valuable, it wasn't enough for me.&lt;/p&gt;
+
+&lt;p&gt;So I looked into other things I enjoyed and I liked the idea of being able to say I was doing something really cool for a living, like being SCUBA diving or snowboarding instructor. Those are things I came close to or deeply considered. I still love these things, yet it is not something I can pour myself into entirely. Probably for a year or two, but not much longer than that.&lt;/p&gt;
+&lt;h2&gt;Happiness&lt;/h2&gt;
+&lt;p&gt;I understand happiness is not a constant state of joy, but really a deeper, more low key satisfaction pervading all aspects of life. Maybe it's the same as satisfaction. Being a web developer is only a part of that, but I feel I am now into a profession which suits my interests entirely.&lt;/p&gt;
+&lt;p&gt;If at this point you are still reading, but don't know too much about web development, I will try to convey what I enjoy about it. First of all, it is exciting to be able to work with edge technology and forward thinking people. To be able to have an idea and make it real and accessible for others. Working with new technologies means there are always problems to solve. In management terms those would be called challenges. I like to think of those as puzzles to crack.&lt;/p&gt;
+&lt;p&gt;I think writing code and seeing things happen is magical, no matter how logical the explanation is. Figuring out how things work, what things are made of has always been fascinating to me. This is why web development suits me so well. what's more is that technology doesn't just come to a stop. I have a life long of learning ahead of me and I love that idea.&lt;/p&gt;
+&lt;h2&gt;This blog&lt;/h2&gt;
+&lt;p&gt;While I felt the need to introduce my motivation for this blog, I think it will mainly focus on the technology I use and try out.&lt;/p&gt;
+&lt;p&gt;I think it's a great way of contributing to the technical community. Personally I remember the number of times a great blog post helped me solve a technical issue I encountered, providing me with concise wording and clear examples. It is my goal to return that favor as often as I have the chance.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Asking Questions</title>
+    <link rel="alternate" href="http://blog.url.com/2014/10/01/asking-questions.html"/>
+    <id>http://blog.url.com/2014/10/01/asking-questions.html</id>
+    <published>2014-10-01T02:00:00+02:00</published>
+    <updated>2015-12-13T23:53:23+01:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;h2&gt;The right question&lt;/h2&gt;
+&lt;p&gt;Asking a good question does take more consideration than you would initially think. I have worked in various IT support roles where I had to both answer questions as well ask questions to other specialists. I know what it's like for both sides of the question. It is important to provide brief, yet detailed and only relevant information, while making sure you aren't omitting anything helpful. It can be important to provide environment variables when they are relevant, but they should be very succinct.&lt;/p&gt;
+&lt;p&gt;When it comes to asking questions about code, I understand it is important to reduce the amount of example code to a minimum and use easy to understand, general variables and names. This is what I took away from the presented article.&lt;/p&gt;
+
+&lt;p&gt;Considering my own questions I know I have not actually done that. So far though my questions on code in G+ have been specific to the shared exercises, so we all know the circumstances, but I should keep this in mind.&lt;/p&gt;
+&lt;p&gt;When I ask my questions I definitely position myself as a potential answerer. Sometimes I find the answer to my question by simply writing it out, noticing a detail I haven't tried yet, then try different things on that which will lead me to more useful information if not a complete solution.&lt;/p&gt;
+
+&lt;h2&gt;Asking in person&lt;/h2&gt;
+&lt;p&gt;When I approached colleagues with questions I always made sure I had all information ready, either jotted down on paper or by bringing a laptop or making sure we can look at the same screen quickly.&lt;/p&gt;
+&lt;p&gt;What is emphasized is that the person providing help is taking out time and that is very true. It is goodwill and I make sure to let the other person know it is appreciated. Likewise, I am always happy to help someone who is prepared and whom I know will be helped on their with the provided information. I just believe that we can pass on what we are given. I think that is our natural inclination and I like to accommodate that.&lt;/p&gt;
+
+</content>
+  </entry>
+  <entry>
+    <title>Site Evaluation</title>
+    <link rel="alternate" href="http://blog.url.com/2014/09/30/site-evaluation.html"/>
+    <id>http://blog.url.com/2014/09/30/site-evaluation.html</id>
+    <published>2014-09-30T02:00:00+02:00</published>
+    <updated>2015-12-13T23:56:30+01:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;h3&gt;Nine weeks of blogging&lt;/h3&gt;
+&lt;p&gt;One of the things DBC taught me is to get into the habit of blogging regularly. While the topics weren't something I would choose to blog about this process has been educative to me. In the cultural blog assignments I considered things I had not considered before. In the technical blogging I realized how blogging really helps solidify the topics I chose.&lt;/p&gt;
+
+&lt;p&gt;I have to admit that when I blogged I always picked the topic I felt most unfamiliar with, so I had to learn about it before and while I blogged about it. This is an efficient way of both increasing and sharing my knowledge.&lt;/p&gt;
+
+
+&lt;p&gt;When I blog the first thing I will consider if it is worthwhile for someone else to read. I hope this has been the case so far and when picking my next blog topics this will be my primary consideration.&lt;/p&gt;
+
+&lt;h3&gt;Achievement Unlocked&lt;/h3&gt;
+&lt;p&gt;When I started building my site I had wireframes, but when building it, the wireframes became nothing more but a very rough outline and were soon after forgotten. Looking back at my site now I am happy with the starting page, but I would like to redo my blog page.&lt;/p&gt;
+
+&lt;p&gt;One of the first things I wanted to do once I had my landing page was for it to transition smoothly into the next pages. Being introduced to JQuery allowed me to do just that.
+
+&lt;p&gt;I did look into using my own domain name on the GitHub pages and I was surprised by how fast I got that done. I expected some more technical hiccups here, but sometime things just go smoothly.&lt;/p&gt;
+
+&lt;p&gt;While I didn't get into Jekyll or Middleman yet, I will look into this after DBC as I can see the benefits of using this to generate my templates. It will make it easier to transition to other layouts or fix something without having to go through all my blog posts again.&lt;/p&gt;
+
+&lt;p&gt;I did rethink my blog index page and it makes more sense to me now. It is still a work in progress and I have some ideas on how to improve this. Again, I will take this on after I finish my nine weeks in DBC.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Conflict</title>
+    <link rel="alternate" href="http://blog.url.com/2014/09/28/conflict.html"/>
+    <id>http://blog.url.com/2014/09/28/conflict.html</id>
+    <published>2014-09-28T02:00:00+02:00</published>
+    <updated>2015-12-13T23:53:13+01:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">  &lt;p&gt;I would like to invite you to do an &lt;a href="https://www.google.com/search?q=conflict&amp;biw=1920&amp;bih=968&amp;source=lnms&amp;tbm=isch&amp;sa=X&amp;ei=ZM4qVJ2EFsjCPIz3gcAL&amp;ved=0CAYQ_AUoAQ"&gt;image search on Google&lt;/a&gt; for conflict. There are two things that I noticed: Almost all of them feature people in traditional office wear and exactly all of them look ridiculous. The only exception is the image with the children being angry with each other. When it comes children it's easy to understand conflict over small things. We all have to learn how to deal with different people and situations. It's when you see adults behave in this way that it is obvious they haven't had the opportunity or wisdom to develop in this regard.&lt;/p&gt;
+  &lt;p&gt;I am glad to see DBC embracing emotional intelligence where it is made clear we can be angry or annoyed, but don't have to be driven by these emotions. I loved Sharif's talk on the compass of shame, as he indicated that each of these reactions only come forth out of a desire to be of benefit, and that each of these methods are also signs of a unique strength.&lt;/p&gt;
+
+  &lt;h3&gt;My experience&lt;/h3&gt;
+  &lt;p&gt;&lt;ul&gt;
+    &lt;li&gt;Discuss a time you had an emotional conflict with someone. What was it about? What happened?&lt;/li&gt;
+    &lt;li&gt;What was the source of the conflict?&lt;/li&gt;
+    &lt;li&gt;How did you handle that conflict?&lt;/li&gt;
+    &lt;li&gt;Did your actions make the conflict better or worse?&lt;/li&gt;
+    &lt;li&gt;If you could go back, what would you do differently, if anything?&lt;/li&gt;
+    &lt;li&gt;What did you learn from this experience?&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;p&gt;This question makes me realize how lucky I am. I had to think long for a bit on this. I mean, I know I've had a discussions over the taxi price somewhere in South East Asia and I probably expressed my annoyance in some way. It doesn't really matter. Even at those times I don't look at making a stand, but how to solve the situation. And while I can have inner turmoil, it only results in conflict if I believe my frustration or annoyance needs to be directed at a person. I don't believe that anymore. Someone can stand in front of me and yell in my face and I wouldn't call it conflict. Sure, I would experience a range of emotions, maybe fear, guilt, hatred, anger, but in that range of emotions I always have a choice in how to respond. This is what was talked about in the DBC recommended emotional intelligence talks. This is not a new concept to me.&lt;/p&gt;
+
+  &lt;p&gt;Other than that there are conflicts in my past where I know my actions made things worse through blaming someone or by trying to avoid a person or situation. This was all very painful and while avoidance can seem to remove conflict, it only suppresses it. It always only made things worse.&lt;/p&gt;
+
+  &lt;p&gt;If I could go back I would use the wisdom I have now and be more empathetic in the way that I can see the other persons motives are to want the best for me. Their concern for me can be expressed in ineffective ways, but that doesn't mean I have to respond ineffectively.&lt;/p&gt;
+
+  &lt;p&gt;I would listen openly, without putting up a defensive stand or preparing a counterattack, making sure the other person is heard and let them know they are heard. Offering resolution where possible, but simply accepting the other persons feelings if resolution cannot be found at that time.&lt;/p&gt;
+
+  &lt;p&gt;One way to avoid conflict is by giving in, but again, the conflict simmers on. Just because there isn't a clash does not mean there is no conflict. Only a peaceful allowing of things as they are can resolve conflict naturally. I strongly believe this and have experienced this in my life on several occasions.&lt;/p&gt;
+
+  &lt;p&gt;This is why I say I haven't really had any conflict for some time now. And the more I practice lettings things be as they are, the more confident I become in that.&lt;/p&gt;
+
+  &lt;p&gt;We cannot really choose our thoughts and emotions, but we can always choose what to do with them. This is where our responsibility lies. This is where the choice lies between being a victim and being free.&lt;/p&gt;
+
+  &lt;p&gt;I have to give credit to Balanced View here as the support provided in this grassroots movement has been invaluable to me. Growing up, being out in the world, I always knew there had to be a better way of living than what most people were doing. In the simple practice of lettings things be for short moments I found how. This is what I take with me always, this is how I recognize my emotions stir and my opportunity to make my decisions based on what serves everyone best. I don't take things so personal anymore. This relaxes me and my reactions. In this way conflict cannot really take hold.&lt;/p&gt;
+</content>
+  </entry>
+</feed>
