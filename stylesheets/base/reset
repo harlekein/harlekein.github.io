@@ -2,7 +2,6 @@
    v2.0 | 20110126
    License: none (public domain)
 */
-/* line 7, /home/richard/code/websites/richardbaptist.nl/source/stylesheets/base/reset.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -24,35 +23,28 @@ time, mark, audio, video {
   vertical-align: baseline; }
 
 /* HTML5 display-role reset for older browsers */
-/* line 28, /home/richard/code/websites/richardbaptist.nl/source/stylesheets/base/reset.scss */
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
   display: block; }
 
-/* line 32, /home/richard/code/websites/richardbaptist.nl/source/stylesheets/base/reset.scss */
 body {
   line-height: 1; }
 
-/* line 35, /home/richard/code/websites/richardbaptist.nl/source/stylesheets/base/reset.scss */
 ol {
   list-style: none; }
 
-/* line 38, /home/richard/code/websites/richardbaptist.nl/source/stylesheets/base/reset.scss */
 blockquote, q {
   quotes: none; }
 
-/* line 41, /home/richard/code/websites/richardbaptist.nl/source/stylesheets/base/reset.scss */
 blockquote:before, blockquote:after,
 q:before, q:after {
   content: '';
   content: none; }
 
-/* line 46, /home/richard/code/websites/richardbaptist.nl/source/stylesheets/base/reset.scss */
 table {
   border-collapse: collapse;
   border-spacing: 0; }
 
-/* line 50, /home/richard/code/websites/richardbaptist.nl/source/stylesheets/base/reset.scss */
 *, *:before, *:after {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;

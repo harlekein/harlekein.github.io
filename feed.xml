@@ -14,7 +14,7 @@
     <link rel="alternate" href="http://blog.url.com/2015/12/13/validating-stateful-objects-in-rails.html"/>
     <id>http://blog.url.com/2015/12/13/validating-stateful-objects-in-rails.html</id>
     <published>2015-12-13T22:00:00+01:00</published>
-    <updated>2015-12-16T21:42:05+01:00</updated>
+    <updated>2016-05-13T19:42:06+02:00</updated>
     <author>
       <name>Article Author</name>
     </author>
@@ -127,61 +127,11 @@
 </content>
   </entry>
   <entry>
-    <title>Postgres with Rails on Linux Mint</title>
-    <link rel="alternate" href="http://blog.url.com/2015/03/24/postgres-for-rails-in-linux.html"/>
-    <id>http://blog.url.com/2015/03/24/postgres-for-rails-in-linux.html</id>
-    <published>2015-03-24T01:00:00+01:00</published>
-    <updated>2015-12-15T10:34:58+01:00</updated>
-    <author>
-      <name>Article Author</name>
-    </author>
-    <content type="html">&lt;p&gt;This will be very short to let you know how to set up PostgreSQL so you won't have to use a password. Obviously this isn't the most secure, but this is assuming you don't have sensitive data in your development and test environment. (Which you shouldn't have.)&lt;/p&gt;
-
-&lt;p&gt;There is an excellent guide on how to set up Postgres on Ubuntu. I use Linux Mint, but 95% of the time an Unbuntu how-to will work on Linux Mint every time. If you haven't done that yet, go do that first:&lt;/p&gt;
-&lt;p&gt;&lt;a href="https://help.ubuntu.com/community/PostgreSQL"&gt;Install PostgreSQL on Unbuntu&lt;/a&gt;&lt;/p&gt;
-&lt;h3&gt;Minimal configuration&lt;/h3&gt;
-&lt;p&gt;So what I want for my Rails projects is a postgresql setup which will create the databases I need and be compatible with people I work on projects with who probably use a Mac.&lt;/p&gt;
-&lt;p&gt;This is what my database.yml file would look like:&lt;/p&gt;
-&lt;pre class="highlight ruby"&gt;&lt;code&gt;&amp;#x000A;&lt;span class="ss"&gt;default: &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;default&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;adapter: &lt;/span&gt;&lt;span class="n"&gt;postgresql&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;encoding: &lt;/span&gt;&lt;span class="n"&gt;unicode&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;pool: &lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&amp;#x000A;&amp;#x000A;&lt;span class="ss"&gt;development:&amp;#x000A;  &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;default&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;database: &lt;/span&gt;&lt;span class="n"&gt;project_name_development&lt;/span&gt;&amp;#x000A;&amp;#x000A;&lt;span class="ss"&gt;test:&amp;#x000A;  &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;default&lt;/span&gt;&amp;#x000A;  &lt;span class="ss"&gt;database: &lt;/span&gt;&lt;span class="n"&gt;project_name_test&lt;/span&gt;&amp;#x000A;&amp;#x000A;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Now with Postgres installed and the configuration set up there was one thing that kept bugging me and it took me some Google searches, visits to StackOverflow and some trial and error before I got it right. So here it is:&lt;/p&gt;
-&lt;h3&gt;The point of this post&lt;/h3&gt;
-&lt;p&gt;This is where you should go: &lt;span class='inline-code'&gt;/etc/postgresql/9.3/main/pg_hba.conf&lt;/span&gt;&lt;/p&gt;
-&lt;p&gt;Then I simply added this line:&lt;/p&gt;
-&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# TYPE  DATABASE     USER          ADDRESS            METHOD&amp;#x000A;host    all          richard       127.0.0.1/32       trust&amp;#x000A;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;This means that for user 'richard' I set a blank password and now allow all connections which I run from Rails. That's it really. Nice and easy.&lt;/p&gt;
-</content>
-  </entry>
-  <entry>
-    <title>Web Development, my vocation</title>
-    <link rel="alternate" href="http://blog.url.com/2015/03/12/web-development-my-vocation.html"/>
-    <id>http://blog.url.com/2015/03/12/web-development-my-vocation.html</id>
-    <published>2015-03-12T01:00:00+01:00</published>
-    <updated>2015-12-13T23:53:57+01:00</updated>
-    <author>
-      <name>Article Author</name>
-    </author>
-    <content type="html">&lt;p&gt;I thought about first post on my new blog site. It should be about the technology I used to build it and that will come, but first I wanted to share my motivation as to why I wanted to maintain a blog site in the first place.&lt;/p&gt;
-&lt;p&gt;This blog is an expression of who I am. I am a web developer. This is only a small part of who I am, but strangely enough, it is what I feel very much at home with right now.&lt;/p&gt;
-&lt;h2&gt;Vocation&lt;/h2&gt;
-&lt;p&gt;Vocation is a powerful word to me. It is something which resonates strongly with my core values, my interests. It is not a job, not a career. A vocation is more powerful than that. More &lt;i&gt;real&lt;/i&gt;. An extension of who I am, going out in the world and contributing what I have to give.&lt;/p&gt;
-&lt;p&gt;That sounds pretty deep and honestly, I always thought of my vocation being more romantic than web development somehow. Like building a school in Vietnam or Cambodia. Not too long ago, when I still didn't know what I wanted to do when I'd grow up, I actually did things similar to that. While I found it valuable, it wasn't enough for me.&lt;/p&gt;
-
-&lt;p&gt;So I looked into other things I enjoyed and I liked the idea of being able to say I was doing something really cool for a living, like being SCUBA diving or snowboarding instructor. Those are things I came close to or deeply considered. I still love these things, yet it is not something I can pour myself into entirely. Probably for a year or two, but not much longer than that.&lt;/p&gt;
-&lt;h2&gt;Happiness&lt;/h2&gt;
-&lt;p&gt;I understand happiness is not a constant state of joy, but really a deeper, more low key satisfaction pervading all aspects of life. Maybe it's the same as satisfaction. Being a web developer is only a part of that, but I feel I am now into a profession which suits my interests entirely.&lt;/p&gt;
-&lt;p&gt;If at this point you are still reading, but don't know too much about web development, I will try to convey what I enjoy about it. First of all, it is exciting to be able to work with edge technology and forward thinking people. To be able to have an idea and make it real and accessible for others. Working with new technologies means there are always problems to solve. In management terms those would be called challenges. I like to think of those as puzzles to crack.&lt;/p&gt;
-&lt;p&gt;I think writing code and seeing things happen is magical, no matter how logical the explanation is. Figuring out how things work, what things are made of has always been fascinating to me. This is why web development suits me so well. what's more is that technology doesn't just come to a stop. I have a life long of learning ahead of me and I love that idea.&lt;/p&gt;
-&lt;h2&gt;This blog&lt;/h2&gt;
-&lt;p&gt;While I felt the need to introduce my motivation for this blog, I think it will mainly focus on the technology I use and try out.&lt;/p&gt;
-&lt;p&gt;I think it's a great way of contributing to the technical community. Personally I remember the number of times a great blog post helped me solve a technical issue I encountered, providing me with concise wording and clear examples. It is my goal to return that favor as often as I have the chance.&lt;/p&gt;
-</content>
-  </entry>
-  <entry>
     <title>Asking Questions</title>
     <link rel="alternate" href="http://blog.url.com/2014/10/01/asking-questions.html"/>
     <id>http://blog.url.com/2014/10/01/asking-questions.html</id>
     <published>2014-10-01T02:00:00+02:00</published>
-    <updated>2015-12-13T23:53:23+01:00</updated>
+    <updated>2016-05-13T19:42:06+02:00</updated>
     <author>
       <name>Article Author</name>
     </author>
@@ -203,7 +153,7 @@
     <link rel="alternate" href="http://blog.url.com/2014/09/30/site-evaluation.html"/>
     <id>http://blog.url.com/2014/09/30/site-evaluation.html</id>
     <published>2014-09-30T02:00:00+02:00</published>
-    <updated>2015-12-13T23:56:30+01:00</updated>
+    <updated>2016-05-13T19:42:06+02:00</updated>
     <author>
       <name>Article Author</name>
     </author>
@@ -232,7 +182,7 @@
     <link rel="alternate" href="http://blog.url.com/2014/09/28/conflict.html"/>
     <id>http://blog.url.com/2014/09/28/conflict.html</id>
     <published>2014-09-28T02:00:00+02:00</published>
-    <updated>2015-12-13T23:53:13+01:00</updated>
+    <updated>2016-05-13T19:42:06+02:00</updated>
     <author>
       <name>Article Author</name>
     </author>
@@ -264,6 +214,126 @@
   &lt;p&gt;We cannot really choose our thoughts and emotions, but we can always choose what to do with them. This is where our responsibility lies. This is where the choice lies between being a victim and being free.&lt;/p&gt;
 
   &lt;p&gt;I have to give credit to Balanced View here as the support provided in this grassroots movement has been invaluable to me. Growing up, being out in the world, I always knew there had to be a better way of living than what most people were doing. In the simple practice of lettings things be for short moments I found how. This is what I take with me always, this is how I recognize my emotions stir and my opportunity to make my decisions based on what serves everyone best. I don't take things so personal anymore. This relaxes me and my reactions. In this way conflict cannot really take hold.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Values</title>
+    <link rel="alternate" href="http://blog.url.com/2014/09/17/values.html"/>
+    <id>http://blog.url.com/2014/09/17/values.html</id>
+    <published>2014-09-17T02:00:00+02:00</published>
+    <updated>2016-05-13T19:42:06+02:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;When I think of my happiest, proudest and most satisfying moments, which values come to mind?&lt;/p&gt;
+&lt;p&gt;Achievement, Adventure, Community, Compassion, Cooperation, Decisiveness, Effectiveness, Freedom, Friendships, Growth, Helping other people, Honesty, Insight, Inspiration, Integrity, Meaningful work,  Nature, Openness, Personal development, Physical challenge, Responsibility, Self-knowledge, Stability, Wisdom&lt;/p&gt;
+&lt;p&gt;Quite a list. Some are similar, some compliment each other, some are applicable in different ways, but I find each of these important.&lt;/p&gt;
+
+&lt;h3&gt;Self-knowledge&lt;/h3&gt;
+&lt;p&gt;When I choose only one value it is this one, because it is the foundation of all other values. To me self-knowledge has been the most significant drive in my life decisions. It has and continues to be my deepest commitment. I would go as far to say that this is the highest goal in my life and living a life neglecting it is a life without meaning. With lack of self-knowledge there can be no real relationship, no openness, no growth. Nothing can be offered to me which is of greater value than the knowing of who I am. This understanding of self is ever increasing, ever expanding and with it my life continues to be enriched in ways I couldn't have imagined.&lt;/p&gt;
+
+&lt;h3&gt;Rating my Values&lt;/h3&gt;
+&lt;p&gt;
+  On a scale of 1 to 5, do I try to live up to these values?
+  &lt;div style="position: relative; margin: auto; width: 38em; font-size: 0.5em"&gt;
+    &lt;div class="ls"&gt;
+      &lt;ul&gt;
+        &lt;li&gt;Achievement - 3&lt;/li&gt;
+        &lt;li&gt;Adventure - 4&lt;/li&gt;
+        &lt;li&gt;Community - 3&lt;/li&gt;
+        &lt;li&gt;Compassion - 2&lt;/li&gt;
+        &lt;li&gt;Cooperation - 5&lt;/li&gt;
+        &lt;li&gt;Decisiveness - 4&lt;/li&gt;
+        &lt;li&gt;Effectiveness - 5&lt;/li&gt;
+        &lt;li&gt;Freedom - 5&lt;/li&gt;
+        &lt;li&gt;Friendships - 4&lt;/li&gt;
+        &lt;li&gt;Growth - 5&lt;/li&gt;
+        &lt;li&gt;Helping other people - 5&lt;/li&gt;
+        &lt;li&gt;Honesty - 5&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+    &lt;div class="ls"&gt;
+      &lt;ul&gt;
+        &lt;li&gt;Insight - 5&lt;/li&gt;
+        &lt;li&gt;Inspiration - 5&lt;/li&gt;
+        &lt;li&gt;Integrity - 5&lt;/li&gt;
+        &lt;li&gt;Meaningful work - 5&lt;/li&gt;
+        &lt;li&gt;Nature - 5&lt;/li&gt;
+        &lt;li&gt;Openness - 5&lt;/li&gt;
+        &lt;li&gt;Personal development - 5&lt;/li&gt;
+        &lt;li&gt;Physical challenge - 3&lt;/li&gt;
+        &lt;li&gt;Responsibility - 4&lt;/li&gt;
+        &lt;li&gt;Self-knowledge - 5&lt;/li&gt;
+        &lt;li&gt;Stability - 3&lt;/li&gt;
+        &lt;li&gt;Wisdom - 4&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+    &lt;div class="filler"&gt;&lt;/div&gt;
+  &lt;/p&gt;
+
+  &lt;h3&gt;Advice&lt;/h3&gt;
+  &lt;p&gt;Honestly, I don't remember the specifics when someone asked me for advice. It's usually, if not always, based on decision making however. In this regard I believe the person asking for advice most of the time knows the answer, but has concerns regarding that decision. An outside perspective can help a person see a wider view. If I have this opportunity I would happily help. Although I do feel it is important to let people get to know and trust their own wisdom. This should be the basis of such exchanges.&lt;/p&gt;
+
+  &lt;p&gt;When I think of my values I feel a strong resonance and an importance to uphold them. Some things I feel come easier than others. Trying to be compassionate can only breed insincerity, so I wouldn't 'try' at it. I do find compassion important, but I take it as it comes. Other things are more internal and are easier to uphold. To be honest, I rated these values without thinking about it much. This wasn't the result of an intellectual evaluation.&lt;/p&gt;
+  &lt;p&gt;As to how to mediate stereotype threat, I don't much to add to what I wrote last week. This relates perfectly to self-knowledge. Being aware of what I sense or do and making the right choice in that moment. Looking at my list I see the following values apply here as well: Helping other people, insight, responsibility, truth, cooporation.&lt;/p&gt;
+  &lt;p&gt;When I feel down I allow myself to feel down without indulging in it. I am fortunate to have a full support system which allows me to find wisdom in whatever it is I am feeling. Feeling 'down' is a part of me, an equal expression of who I am. This presents me the opportunity to get to know myself deeper, even in feeling down. Without making a big thing out of it, trying to get to the bottom of it or telling myself a story to diminish it, it resolves naturally. These things no longer affect my deeper sense of well being.&lt;/p&gt;
+  &lt;p&gt;Because of the support I recieve I have seen many benefits in my experience already. As a result I have the confidence and assurance that I can handle whatever feelings may come up.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Classes and Modules</title>
+    <link rel="alternate" href="http://blog.url.com/2014/09/13/classes-and-modules.html"/>
+    <id>http://blog.url.com/2014/09/13/classes-and-modules.html</id>
+    <published>2014-09-13T02:00:00+02:00</published>
+    <updated>2016-05-13T19:42:06+02:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;In &lt;a href="week5_technical.html"&gt;last week's blog post&lt;/a&gt; I wrote a short bit on classes in Ruby and how they can be interacted with. This week I am taking a look at modules and how they differ from classes.&lt;/p&gt;
+&lt;p&gt;The easiest way to describe modules is by considering them to provide a piece of functionality which could be useful to other classes. Instead of repeating the same code in a different class or calling a seemingly unrelated class for a specific function, modules offer the option to separate this functionality from a class and making it available to other classes.&lt;/p&gt;
+
+&lt;h3&gt;How this is done&lt;/h3&gt;
+&lt;p&gt;Have a look at the linked blog post if you wish to see how classes are declared. Maybe I would like to extend my VideoGame class so I can load my saved games. I could achieve this by adding a new method:&lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;VideoGame&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;load_game&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;file_nr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nb"&gt;puts&lt;/span&gt; &lt;span class="s2"&gt;"Loading &lt;/span&gt;&lt;span class="si"&gt;#{&lt;/span&gt;&lt;span class="n"&gt;game&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;_&lt;/span&gt;&lt;span class="si"&gt;#{&lt;/span&gt;&lt;span class="n"&gt;file_nr&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Say instead of printing out text this would actually be a lot longer, getting a file, checking it, loading it. Mission accomplished. But now I am writing a different class, maybe a music player, and I also want to load files into there. My DRY alert is going off and here is where modules come into play. They are declared much the same as classes:&lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;module&lt;/span&gt; &lt;span class="nn"&gt;LoadFile&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;load_file&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nb"&gt;puts&lt;/span&gt; &lt;span class="s2"&gt;"Loading &lt;/span&gt;&lt;span class="si"&gt;#{&lt;/span&gt;&lt;span class="n"&gt;file&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+Now I just need to use this module in my VideoGame class:
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;VideoGame&lt;/span&gt;
+  &lt;span class="kp"&gt;include&lt;/span&gt; &lt;span class="no"&gt;LoadFile&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But wait! Now we can use the Load_File#load_file method, but how are we going to give it the right parameter? I want to keep LoadFile as objective as possible, so instead of complicating that method I can make a simple alteration in VideoGame:&lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;VideoGame&lt;/span&gt;
+  &lt;span class="kp"&gt;include&lt;/span&gt; &lt;span class="no"&gt;LoadFile&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;load_game&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;save_nr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;game_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s2"&gt;"_"&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;save_nr&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;to_s&lt;/span&gt;
+    &lt;span class="n"&gt;load_file&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;game_file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Last week I used Skyrim, let's stick with that. Say I want to load my last saved game, which is the 18th save of Skyrim. Instead of writing my 'extensive' file loading method again for the VideoGame class I use the existing one which I can use for music and video players as well. In this example I only make sure that I provide the correct file name, then call on the module.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://github.com/harlekein/harlekein.github.io/blob/master/assignments/VideoGame_module.rb"&gt;This file on GitHub&lt;/a&gt;.
+&lt;p&gt;When I load it in IRB I can do the same as last time:&lt;/p&gt;
+&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;skyrim&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;VideoGame&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Skyrim"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;#&amp;lt;;VideoGame:0x007f792baf8e20 @title="Skyrim"&amp;gt;;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;skyrim&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;load_game&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;18&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="no"&gt;Loading&lt;/span&gt; &lt;span class="no"&gt;Skyrim_18&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Why not use a class?&lt;/h3&gt;
+&lt;p&gt;Good question. The same can be accomplished with another class, but classes are designed to be instantiated. To load a file there is no reason to create a new instance for each file we load. It is a design choice and best practice to use a module in this way.&lt;/p&gt;
+&lt;p&gt;This was just a short introduction to modules. For more information I would recommend reading chapter 4 in David A. Black's The Well-Grounded Rubyist. For a concise overview I found &lt;a href="http://stackoverflow.com/questions/151505/difference-between-a-class-and-a-module"&gt;this question on StackOverflow&lt;/a&gt; helpful.&lt;/p&gt;
 </content>
   </entry>
 </feed>
